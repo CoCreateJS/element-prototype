@@ -1,3 +1,18 @@
+# [1.32.0](https://github.com/CoCreate-app/CoCreate-element-prototype/compare/v1.31.4...v1.32.0) (2026-07-11)
+
+
+### Bug Fixes
+
+* bump package versions ([1512280](https://github.com/CoCreate-app/CoCreate-element-prototype/commit/1512280ec19444bb884ab814b23ffded58f87ef0))
+* removed post install and add add packages to apprved list ([d658bca](https://github.com/CoCreate-app/CoCreate-element-prototype/commit/d658bca975bec9d38a09ebd050ff0c4ce7ba33ed))
+* semantic version handling ([b38cdb1](https://github.com/CoCreate-app/CoCreate-element-prototype/commit/b38cdb193434cbc542f01959f2864cc14ebce0a8))
+
+
+### Features
+
+* Add getValue and setValue support for SVG elements; Update dashboard and health journal components with new structure and CoCreateJS integration. ([d2c6263](https://github.com/CoCreate-app/CoCreate-element-prototype/commit/d2c6263e5c948df92ce7f5cdca9443c525751c8a))
+* Enhance handleDateTime function to support 'now' attribute and add timeTo functionality for detailed time calculations ([0613076](https://github.com/CoCreate-app/CoCreate-element-prototype/commit/0613076199fa6b581d206cf2cb9089c504366898))
+
 ## [1.31.4](https://github.com/CoCreate-app/CoCreate-element-prototype/compare/v1.31.3...v1.31.4) (2026-03-01)
 
 
