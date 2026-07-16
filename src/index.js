@@ -20,10 +20,10 @@
 // you must obtain a commercial license from CoCreate LLC.
 // For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
 
-import { getAttribute } from "./getAttribute";
-import { setValue } from "./setValue";
-import { getValue } from "./getValue";
-import { queryElements } from "./queryElements";
+import { getAttribute } from "./getAttribute.js";
+import { setValue } from "./setValue.js";
+import { getValue } from "./getValue.js";
+import { queryElements } from "./queryElements.js";
 
 export default {
 	getAttribute,

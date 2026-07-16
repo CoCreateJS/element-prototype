@@ -1,4 +1,4 @@
-import { storage } from "./getValue";
+import { storage } from "./getValue.js";
 
 HTMLElement.prototype.setValue = function (value, dispatch) {
 	setValue(this, value, dispatch);
