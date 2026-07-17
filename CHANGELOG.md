@@ -1,3 +1,10 @@
+# [1.33.0](https://github.com/CoCreate-app/CoCreate-element-prototype/compare/v1.32.0...v1.33.0) (2026-07-17)
+
+
+### Features
+
+* update automated workflow and release configuration for improved semantic release handling ([66b108a](https://github.com/CoCreate-app/CoCreate-element-prototype/commit/66b108a75c3f4e8404dbc24db6e7fdd03ecdd180))
+
 # [1.32.0](https://github.com/CoCreate-app/CoCreate-element-prototype/compare/v1.31.4...v1.32.0) (2026-07-11)
 
 
