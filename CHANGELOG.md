@@ -1,3 +1,10 @@
+## [1.33.2](https://github.com/CoCreate-app/CoCreate-element-prototype/compare/v1.33.1...v1.33.2) (2026-07-19)
+
+
+### Bug Fixes
+
+* set default branch to main ([f58a47d](https://github.com/CoCreate-app/CoCreate-element-prototype/commit/f58a47deb32726011de8ad248f7f34b1197e0c35))
+
 ## [1.33.1](https://github.com/CoCreate-app/CoCreate-element-prototype/compare/v1.33.0...v1.33.1) (2026-07-17)
 
 
