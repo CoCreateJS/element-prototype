@@ -1,18 +1,22 @@
-import utils from "@cocreate/utils";
+import { queryElements as baseQueryElements } from "@cocreate/utils";
 
 /**
  * Custom method to query elements in the context of a specific DOM element.
  *
- * @param {Object} options - Options to customize the query.
- * @returns {NodeListOf<Element>} - A list of elements found based on the query criteria.
+ * @this {Element} - The DOM element context.
+ * @param {Object} [options={}] - Options to customize the query.
+ * @returns {NodeListOf<Element>} A list of elements found based on the query criteria.
  */
-function queryElements(options = {}) {
-	// Use `this` as the element context and pass additional options to utils.queryElements
-	return utils.queryElements({ element: this, ...options });
+export function queryElements(options = {}) {
+    // Ensure 'this' is a valid Element when used as a prototype method
+    if (!(this instanceof Element)) {
+        throw new TypeError("queryElements must be called on an Element instance");
+    }
+
+    return baseQueryElements({ element: this, ...options });
 }
 
-// Attach the method to Element's prototype to allow its use as an instance method
-Element.prototype.queryElements = queryElements;
-
-// Export the function for direct use in other parts of your application
-export { queryElements };
+// Attach the method to Element's prototype for instance method usage
+if (!Element.prototype.queryElements) {
+    Element.prototype.queryElements = queryElements;
+}
