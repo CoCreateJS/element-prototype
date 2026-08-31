@@ -149,7 +149,6 @@ const setValue = (el, value, dispatch) => {
 		else {
 			let newElement = document.createElement("div");
 			newElement.innerHTML = value;
-			setState(newElement);
 
 			let CoCreateJS = newElement.querySelector(
 				'script[src*="CoCreate.js"], script[src*="CoCreate.min.js"]'
@@ -205,13 +204,6 @@ const setValue = (el, value, dispatch) => {
 
 	dispatchEvents(el, bubbles, dispatch);
 };
-
-function setState(el) {
-	if (CoCreate.state) {
-		let stateElements = el.querySelectorAll("[state_id]");
-		if (stateElements) CoCreate.state.initElements(stateElements);
-	}
-}
 
 function setScript(script, value) {
 	let srcAttribute = script.src;
