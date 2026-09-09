@@ -21,17 +21,17 @@ import { astSync, astAsync } from "@cocreate/utils";
 const storage = new Map();
 
 HTMLElement.prototype.getValue = function () {
-	return getValue(this);
+    return getValue(this);
 };
 SVGElement.prototype.getValue = function () {
-	return getValue(this);
+    return getValue(this);
 };
 
 HTMLElement.prototype.getValueAsync = async function () {
-	return await getValueAsync(this);
+    return await getValueAsync(this);
 };
 SVGElement.prototype.getValueAsync = async function () {
-	return await getValueAsync(this);
+    return await getValueAsync(this);
 };
 
 /**
@@ -42,121 +42,121 @@ SVGElement.prototype.getValueAsync = async function () {
  * @returns {any} - The processed value.
  */
 const getValue = (element, valueType) => {
-	if (!valueType) {
-		valueType = element.getAttribute("value-type") || "";
-	}
+    if (!valueType) {
+        valueType = element.getAttribute("value-type") || "";
+    }
 
-	let value = element.value || element.getAttribute("value") || "";
+    let value = element.value || element.getAttribute("value") || "";
 
-	if (
-		element.hasAttribute("component") ||
-		element.type === "file" ||
-		element.getAttribute("type") === "file"
-	) {
-		value = storage.get(element);
-		storage.delete(element);
-		return value;
-	}
+    if (
+        element.hasAttribute("component") ||
+        element.type === "file" ||
+        element.getAttribute("type") === "file"
+    ) {
+        value = storage.get(element);
+        // storage.delete(element);
+        return value;
+    }
 
-	let prefix = element.getAttribute("value-prefix") || "";
-	let suffix = element.getAttribute("value-suffix") || "";
+    let prefix = element.getAttribute("value-prefix") || "";
+    let suffix = element.getAttribute("value-suffix") || "";
 
-	const elementType = element.getAttribute("type") || element.type;
-	const tagName = element.tagName.toUpperCase();
+    const elementType = element.getAttribute("type") || element.type;
+    const tagName = element.tagName.toUpperCase();
 
-	switch (elementType) {
-		case "checkbox":
-			value = handleCheckbox(element, prefix, suffix);
-			break;
+    switch (elementType) {
+        case "checkbox":
+            value = handleCheckbox(element, prefix, suffix);
+            break;
 
-		case "radio": {
-			const key = element.getAttribute("key");
-			let el = document.querySelector(`input[key="${key}"]:checked`);
-			if (el) {
-				value = el.value;
-			}
-			break;
-		}
+        case "radio": {
+            const key = element.getAttribute("key");
+            let el = document.querySelector(`input[key="${key}"]:checked`);
+            if (el) {
+                value = el.value;
+            }
+            break;
+        }
 
-		case "number":
-			value = Number(value);
-			break;
+        case "number":
+            value = Number(value);
+            break;
 
-		case "range":
-			value = element.min
-				? [Number(element.min), Number(element.value)]
-				: Number(element.value);
-			break;
+        case "range":
+            value = element.min
+                ? [Number(element.min), Number(element.value)]
+                : Number(element.value);
+            break;
 
-		case "password":
-			value = btoa(value || "");
-			break;
+        case "password":
+            value = btoa(value || "");
+            break;
 
-		case "email":
-			value = value.toLowerCase();
-			break;
+        case "email":
+            value = value.toLowerCase();
+            break;
 
-		case "url":
-			break;
+        case "url":
+            break;
 
-		case "time":
-		case "date":
-		case "datetime":
-		case "datetime-local":
-			value = handleDateTime(element, value, valueType);
-			break;
+        case "time":
+        case "date":
+        case "datetime":
+        case "datetime-local":
+            value = handleDateTime(element, value, valueType);
+            break;
 
-		default:
-			switch (tagName) {
-				case "INPUT":
-					value = element.value;
-					break;
+        default:
+            switch (tagName) {
+                case "INPUT":
+                    value = element.value;
+                    break;
 
-				case "SELECT":
-					value = element.hasAttribute("multiple")
-						? handleMultipleSelect(element, prefix, suffix)
-						: element.value;
-					break;
+                case "SELECT":
+                    value = element.hasAttribute("multiple")
+                        ? handleMultipleSelect(element, prefix, suffix)
+                        : element.value;
+                    break;
 
-				case "TEXTAREA":
-					value = element.hasAttribute("value")
-						? element.getAttribute("value")
-						: element.value;
-					break;
+                case "TEXTAREA":
+                    value = element.hasAttribute("value")
+                        ? element.getAttribute("value")
+                        : element.value;
+                    break;
 
-				case "IFRAME":
-					value = element.srcdoc;
-					break;
+                case "IFRAME":
+                    value = element.srcdoc;
+                    break;
 
-				default:
-					value = handleElement(element, valueType);
-					break;
-			}
-			break;
-	}
+                default:
+                    value = handleElement(element, valueType);
+                    break;
+            }
+            break;
+    }
 
-	if (valueType === "boolean") {
-		return value && value !== "false";
-	}
+    if (valueType === "boolean") {
+        return value && value !== "false";
+    }
 
-	if (value) {
-		value = astSync({ executeAST: value, node: element, exclude: ["$value"] });
-		value = caseHandler(element, value);
-		value = regex(element, value);
-		value = encodeValue(value, element.getAttribute("value-encode") || "");
-		value = decodeValue(value, element.getAttribute("value-decode") || "");
-	}
+    if (value) {
+        value = astSync({ executeAST: value, node: element, exclude: ["$value"] });
+        value = caseHandler(element, value);
+        value = regex(element, value);
+        value = encodeValue(value, element.getAttribute("value-encode") || "");
+        value = decodeValue(value, element.getAttribute("value-decode") || "");
+    }
 
-	if (typeof value === "string" || typeof value === "number") {
-		if (prefix || suffix) {
-			value = prefix + value + suffix;
-		}
-	}
+    if (typeof value === "string" || typeof value === "number") {
+        if (prefix || suffix) {
+            value = prefix + value + suffix;
+        }
+    }
 
-	value = parseJson(value, valueType);
-	value = toArray(value, valueType);
+    value = parseJson(value, valueType);
+    value = toArray(value, valueType);
 
-	return value;
+    return value;
 };
 
 /**
@@ -167,142 +167,142 @@ const getValue = (element, valueType) => {
  * @returns {Promise<any>} - A promise that resolves to the processed value.
  */
 const getValueAsync = async (element, valueType) => {
-	if (!valueType) {
-		valueType = element.getAttribute("value-type") || "";
-	}
+    if (!valueType) {
+        valueType = element.getAttribute("value-type") || "";
+    }
 
-	let value = element.value || element.getAttribute("value") || "";
+    let value = element.value || element.getAttribute("value") || "";
 
-	if (
-		element.hasAttribute("component") ||
-		element.type === "file" ||
-		element.getAttribute("type") === "file"
-	) {
-		value = storage.get(element);
-		storage.delete(element);
-		return value;
-	}
+    if (
+        element.hasAttribute("component") ||
+        element.type === "file" ||
+        element.getAttribute("type") === "file"
+    ) {
+        value = storage.get(element);
+        storage.delete(element);
+        return value;
+    }
 
-	let prefix = element.getAttribute("value-prefix") || "";
-	let suffix = element.getAttribute("value-suffix") || "";
+    let prefix = element.getAttribute("value-prefix") || "";
+    let suffix = element.getAttribute("value-suffix") || "";
 
-	const elementType = element.getAttribute("type") || element.type;
-	const tagName = element.tagName.toUpperCase();
+    const elementType = element.getAttribute("type") || element.type;
+    const tagName = element.tagName.toUpperCase();
 
-	switch (elementType) {
-		case "checkbox":
-			value = handleCheckbox(element, prefix, suffix);
-			break;
+    switch (elementType) {
+        case "checkbox":
+            value = handleCheckbox(element, prefix, suffix);
+            break;
 
-		case "radio": {
-			const key = element.getAttribute("key");
-			let el = document.querySelector(`input[key="${key}"]:checked`);
-			if (el) {
-				value = el.value;
-			}
-			break;
-		}
+        case "radio": {
+            const key = element.getAttribute("key");
+            let el = document.querySelector(`input[key="${key}"]:checked`);
+            if (el) {
+                value = el.value;
+            }
+            break;
+        }
 
-		case "number":
-			value = Number(value);
-			break;
+        case "number":
+            value = Number(value);
+            break;
 
-		case "range":
-			value = element.min
-				? [Number(element.min), Number(element.value)]
-				: Number(element.value);
-			break;
+        case "range":
+            value = element.min
+                ? [Number(element.min), Number(element.value)]
+                : Number(element.value);
+            break;
 
-		case "password":
-			value = btoa(value || "");
-			break;
+        case "password":
+            value = btoa(value || "");
+            break;
 
-		case "email":
-			value = value.toLowerCase();
-			break;
+        case "email":
+            value = value.toLowerCase();
+            break;
 
-		case "url":
-			break;
+        case "url":
+            break;
 
-		case "time":
-		case "date":
-		case "datetime":
-		case "datetime-local":
-			value = handleDateTime(element, value, valueType);
-			break;
+        case "time":
+        case "date":
+        case "datetime":
+        case "datetime-local":
+            value = handleDateTime(element, value, valueType);
+            break;
 
-		default:
-			switch (tagName) {
-				case "INPUT":
-					value = element.value;
-					break;
+        default:
+            switch (tagName) {
+                case "INPUT":
+                    value = element.value;
+                    break;
 
-				case "SELECT":
-					value = element.hasAttribute("multiple")
-						? handleMultipleSelect(element, prefix, suffix)
-						: element.value;
-					break;
+                case "SELECT":
+                    value = element.hasAttribute("multiple")
+                        ? handleMultipleSelect(element, prefix, suffix)
+                        : element.value;
+                    break;
 
-				case "TEXTAREA":
-					value = element.hasAttribute("value")
-						? element.getAttribute("value")
-						: element.value;
-					break;
+                case "TEXTAREA":
+                    value = element.hasAttribute("value")
+                        ? element.getAttribute("value")
+                        : element.value;
+                    break;
 
-				case "IFRAME":
-					value = element.srcdoc;
-					break;
+                case "IFRAME":
+                    value = element.srcdoc;
+                    break;
 
-				default:
-					value = handleElement(element, valueType);
-					break;
-			}
-			break;
-	}
+                default:
+                    value = handleElement(element, valueType);
+                    break;
+            }
+            break;
+    }
 
-	if (valueType === "boolean") {
-		return value && value !== "false";
-	}
+    if (valueType === "boolean") {
+        return value && value !== "false";
+    }
 
-	if (value) {
-		value = await astAsync({ executeAST: value, node: element, exclude: ["$value"] });
-		value = caseHandler(element, value);
-		value = regex(element, value);
-		value = encodeValue(value, element.getAttribute("value-encode") || "");
-		value = decodeValue(value, element.getAttribute("value-decode") || "");
-	}
+    if (value) {
+        value = await astAsync({ executeAST: value, node: element, exclude: ["$value"] });
+        value = caseHandler(element, value);
+        value = regex(element, value);
+        value = encodeValue(value, element.getAttribute("value-encode") || "");
+        value = decodeValue(value, element.getAttribute("value-decode") || "");
+    }
 
-	if (typeof value === "string" || typeof value === "number") {
-		if (prefix || suffix) {
-			value = prefix + value + suffix;
-		}
-	}
+    if (typeof value === "string" || typeof value === "number") {
+        if (prefix || suffix) {
+            value = prefix + value + suffix;
+        }
+    }
 
-	value = parseJson(value, valueType);
-	value = toArray(value, valueType);
+    value = parseJson(value, valueType);
+    value = toArray(value, valueType);
 
-	return value;
+    return value;
 };
 
 /**
  * Processes a checkbox or a group of checkboxes to determine their checked values.
  */
 const handleCheckbox = (element, prefix = "", suffix = "") => {
-	const inputs = element.getAttribute("key")
-		? document.querySelectorAll(
-				`input[type="${element.type}"][key="${element.getAttribute(
-					"key"
-				)}"]`
-		  )
-		: [element];
+    const inputs = element.getAttribute("key")
+        ? document.querySelectorAll(
+            `input[type="${element.type}"][key="${element.getAttribute(
+                "key"
+            )}"]`
+        )
+        : [element];
 
-	if (inputs.length === 1) {
-		return element.checked ? element.value || true : false;
-	} else {
-		return Array.from(inputs)
-			.filter((el) => el.checked)
-			.map((el) => `${prefix}${el.value}${suffix}`);
-	}
+    if (inputs.length === 1) {
+        return element.checked ? element.value || true : false;
+    } else {
+        return Array.from(inputs)
+            .filter((el) => el.checked)
+            .map((el) => `${prefix}${el.value}${suffix}`);
+    }
 };
 
 /**
@@ -311,7 +311,7 @@ const handleCheckbox = (element, prefix = "", suffix = "") => {
 const handleDateTime = (element, value, valueType) => {
     const inputType = (element.getAttribute("type") || element.type || "").toLowerCase();
     let date;
-    
+
     if (value === "$now" || element.hasAttribute("now")) {
         date = new Date();
     } else if (value instanceof Date) {
@@ -464,7 +464,7 @@ const handleDateTime = (element, value, valueType) => {
             case "timeAgo": {
                 const diffMs = Date.now() - date.getTime();
                 const absSecs = Math.floor(Math.abs(diffMs) / 1000);
-                
+
                 const limitAttr = element.getAttribute("time-ago-limit");
                 if (limitAttr) {
                     const match = limitAttr.match(/^(\d+)([a-z]+)$/i);
@@ -472,7 +472,7 @@ const handleDateTime = (element, value, valueType) => {
                         const amount = parseInt(match[1], 10);
                         const limitUnit = match[2].toLowerCase();
                         let multiplier = 0;
-                        
+
                         switch (limitUnit) {
                             case 's': multiplier = 1; break;
                             case 'm': multiplier = 60; break;
@@ -482,9 +482,9 @@ const handleDateTime = (element, value, valueType) => {
                             case 'mo': multiplier = 2592000; break;
                             case 'y': multiplier = 31536000; break;
                         }
-                        
+
                         const limitInSeconds = amount * multiplier;
-                        
+
                         if (absSecs > limitInSeconds) {
                             const locale = element.getAttribute("locale") || "en-US";
                             return date.toLocaleString(locale);
@@ -535,305 +535,305 @@ const handleDateTime = (element, value, valueType) => {
  * Processes a <select> element with the "multiple" attribute.
  */
 const handleMultipleSelect = (element, prefix, suffix) => {
-	let value = [];
-	let options = element.selectedOptions;
+    let value = [];
+    let options = element.selectedOptions;
 
-	for (let i = 0; i < options.length; i++) {
-		let optionValue = options[i].value;
-		if (prefix || suffix) {
-			optionValue = prefix + optionValue + suffix;
-		}
-		value.push(optionValue);
-	}
+    for (let i = 0; i < options.length; i++) {
+        let optionValue = options[i].value;
+        if (prefix || suffix) {
+            optionValue = prefix + optionValue + suffix;
+        }
+        value.push(optionValue);
+    }
 
-	return value;
+    return value;
 };
 
 /**
  * Retrieves a value from a standard element.
  */
 const handleElement = (element, valueType) => {
-	if (element.hasAttribute("value")) {
-		return element.getAttribute("value");
-	}
+    if (element.hasAttribute("value")) {
+        return element.getAttribute("value");
+    }
 
-	let targetElement = element;
-	const excludeSelector = element.getAttribute("value-remove-query");
+    let targetElement = element;
+    const excludeSelector = element.getAttribute("value-remove-query");
 
-	if (excludeSelector) {
-		targetElement = element.cloneNode(true);
-		targetElement
-			.querySelectorAll(excludeSelector)
-			.forEach((el) => el.remove());
-	}
+    if (excludeSelector) {
+        targetElement = element.cloneNode(true);
+        targetElement
+            .querySelectorAll(excludeSelector)
+            .forEach((el) => el.remove());
+    }
 
-	switch (valueType) {
-		case "text":
-			return targetElement.innerText;
-		case "outerHTML":
-		case "element":
-		case "node":
-			return targetElement.outerHTML;
-		default:
-			return targetElement.innerHTML;
-	}
+    switch (valueType) {
+        case "text":
+            return targetElement.innerText;
+        case "outerHTML":
+        case "element":
+        case "node":
+            return targetElement.outerHTML;
+        default:
+            return targetElement.innerHTML;
+    }
 };
 
 /**
  * Adjusts casing transformations on attributes.
  */
 function caseHandler(element, value) {
-	const lowercase = element.getAttribute("value-lowercase");
-	if (lowercase !== null && lowercase !== "false") {
-		value = value.toLowerCase();
-	}
+    const lowercase = element.getAttribute("value-lowercase");
+    if (lowercase !== null && lowercase !== "false") {
+        value = value.toLowerCase();
+    }
 
-	const uppercase = element.getAttribute("value-uppercase");
-	if (uppercase !== null && uppercase !== "false") {
-		value = value.toUpperCase();
-	}
+    const uppercase = element.getAttribute("value-uppercase");
+    if (uppercase !== null && uppercase !== "false") {
+        value = value.toUpperCase();
+    }
 
-	return value;
+    return value;
 }
 
 /**
  * Transforms output based on Regular Expression definitions.
  */
 function regex(element, value) {
-	try {
-		const attributes = element.attributes;
-		const regexAttribute = [
-			"value-replace",
-			"value-replaceall",
-			"value-test",
-			"value-match",
-			"value-split",
-			"value-lastindex",
-			"value-search",
-			"value-exec"
-		];
+    try {
+        const attributes = element.attributes;
+        const regexAttribute = [
+            "value-replace",
+            "value-replaceall",
+            "value-test",
+            "value-match",
+            "value-split",
+            "value-lastindex",
+            "value-search",
+            "value-exec"
+        ];
 
-		for (let i = 0; i < attributes.length; i++) {
-			if (value === null || value === undefined) break;
-			if (!regexAttribute.includes(attributes[i].name)) continue;
+        for (let i = 0; i < attributes.length; i++) {
+            if (value === null || value === undefined) break;
+            if (!regexAttribute.includes(attributes[i].name)) continue;
 
-			let regexAttributeValue = attributes[i].value;
-			if (!regexAttributeValue) continue;
+            let regexAttributeValue = attributes[i].value;
+            if (!regexAttributeValue) continue;
 
-			let { regex, replacement } = regexParser(regexAttributeValue);
-			if (regex) regexAttributeValue = regex;
+            let { regex, replacement } = regexParser(regexAttributeValue);
+            if (regex) regexAttributeValue = regex;
 
-			replacement =
-				replacement || element.getAttribute("value-replacement") || "";
+            replacement =
+                replacement || element.getAttribute("value-replacement") || "";
 
-			switch (attributes[i].name) {
-				case "value-replace":
-					value = value.replace(regexAttributeValue, replacement);
-					break;
-				case "value-replaceall":
-					value = value.replaceAll(regexAttributeValue, replacement);
-					break;
-				case "value-test":
-					value = regex.test(value);
-					break;
-				case "value-match": {
-					const matches = value.match(regexAttributeValue);
-					if (matches) {
-						value = matches[1] || matches[0];
-					}
-					break;
-				}
-				case "value-split":
-					value = value.split(regexAttributeValue);
-					break;
-				case "value-lastindex":
-					regex.lastIndex = 0;
-					regex.test(value);
-					value = regex.lastIndex;
-					break;
-				case "value-search":
-					value = value.search(regexAttributeValue);
-					break;
-				case "value-exec": {
-					const execResult = regex.exec(value);
-					if (execResult) {
-						value = execResult[1] || execResult[2] || execResult[0];
-					}
-					break;
-				}
-			}
-		}
+            switch (attributes[i].name) {
+                case "value-replace":
+                    value = value.replace(regexAttributeValue, replacement);
+                    break;
+                case "value-replaceall":
+                    value = value.replaceAll(regexAttributeValue, replacement);
+                    break;
+                case "value-test":
+                    value = regex.test(value);
+                    break;
+                case "value-match": {
+                    const matches = value.match(regexAttributeValue);
+                    if (matches) {
+                        value = matches[1] || matches[0];
+                    }
+                    break;
+                }
+                case "value-split":
+                    value = value.split(regexAttributeValue);
+                    break;
+                case "value-lastindex":
+                    regex.lastIndex = 0;
+                    regex.test(value);
+                    value = regex.lastIndex;
+                    break;
+                case "value-search":
+                    value = value.search(regexAttributeValue);
+                    break;
+                case "value-exec": {
+                    const execResult = regex.exec(value);
+                    if (execResult) {
+                        value = execResult[1] || execResult[2] || execResult[0];
+                    }
+                    break;
+                }
+            }
+        }
 
-		return value;
-	} catch (error) {
-		console.warn(
-			"Warning: Transformation error during regex operation:",
-			error,
-			element
-		);
-		return value;
-	}
+        return value;
+    } catch (error) {
+        console.warn(
+            "Warning: Transformation error during regex operation:",
+            error,
+            element
+        );
+        return value;
+    }
 }
 
 function regexParser(string) {
-	let regex, replacement;
-	let regexMatch = string.match(/\/(.+)\/([gimuy]*)/);
+    let regex, replacement;
+    let regexMatch = string.match(/\/(.+)\/([gimuy]*)/);
 
-	if (regexMatch) {
-		regex = new RegExp(regexMatch[1], regexMatch[2]);
-		const splitReplace = string.split(", ");
-		replacement =
-			splitReplace.length > 1 ? splitReplace[1].slice(1, -1) : "";
-	}
+    if (regexMatch) {
+        regex = new RegExp(regexMatch[1], regexMatch[2]);
+        const splitReplace = string.split(", ");
+        replacement =
+            splitReplace.length > 1 ? splitReplace[1].slice(1, -1) : "";
+    }
 
-	return { regex, replacement };
+    return { regex, replacement };
 }
 
 /**
  * Encodes calculated structures securely.
  */
 function encodeValue(value, encodingType) {
-	if (!encodingType) {
-		return value;
-	}
+    if (!encodingType) {
+        return value;
+    }
 
-	switch (encodingType.toLowerCase()) {
-		case "url":
-		case "uri":
-			return encodeURI(value.replace(/ /g, "%20"));
+    switch (encodingType.toLowerCase()) {
+        case "url":
+        case "uri":
+            return encodeURI(value.replace(/ /g, "%20"));
 
-		case "uri-component":
-			return encodeURIComponent(value.replace(/ /g, "%20"));
+        case "uri-component":
+            return encodeURIComponent(value.replace(/ /g, "%20"));
 
-		case "base64":
-		case "atob":
-			try {
-				const encoder = new TextEncoder();
-				const uint8Array = encoder.encode(value);
-				return btoa(String.fromCharCode(...uint8Array));
-			} catch (error) {
-				console.warn(`Failed to encode as Base64: ${error.message}`);
-				return value;
-			}
+        case "base64":
+        case "atob":
+            try {
+                const encoder = new TextEncoder();
+                const uint8Array = encoder.encode(value);
+                return btoa(String.fromCharCode(...uint8Array));
+            } catch (error) {
+                console.warn(`Failed to encode as Base64: ${error.message}`);
+                return value;
+            }
 
-		case "html-entities":
-			return value.replace(/[\u00A0-\u9999<>\&]/g, (i) => {
-				return `&#${i.charCodeAt(0)};`;
-			});
+        case "html-entities":
+            return value.replace(/[\u00A0-\u9999<>\&]/g, (i) => {
+                return `&#${i.charCodeAt(0)};`;
+            });
 
-		case "json":
-			try {
-				return JSON.stringify(value);
-			} catch (error) {
-				console.warn(`Failed to convert to JSON: ${error.message}`);
-				return value;
-			}
+        case "json":
+            try {
+                return JSON.stringify(value);
+            } catch (error) {
+                console.warn(`Failed to convert to JSON: ${error.message}`);
+                return value;
+            }
 
-		default:
-			console.warn(`Unsupported encoding type: ${encodingType}`);
-			return value;
-	}
+        default:
+            console.warn(`Unsupported encoding type: ${encodingType}`);
+            return value;
+    }
 }
 
 /**
  * Decodes calculated structures securely.
  */
 function decodeValue(value, decodingType) {
-	if (!decodingType) {
-		return value;
-	}
+    if (!decodingType) {
+        return value;
+    }
 
-	switch (decodingType.toLowerCase()) {
-		case "url":
-		case "uri":
-			return decodeURI(value);
+    switch (decodingType.toLowerCase()) {
+        case "url":
+        case "uri":
+            return decodeURI(value);
 
-		case "uri-component":
-			return decodeURIComponent(value);
+        case "uri-component":
+            return decodeURIComponent(value);
 
-		case "base64":
-		case "btoa":
-			try {
-				const decodedArray = Uint8Array.from(atob(value), (c) =>
-					c.charCodeAt(0)
-				);
-				const decoder = new TextDecoder();
-				return decoder.decode(decodedArray);
-			} catch (error) {
-				console.warn(`Failed to decode Base64: ${error.message}`);
-				return value;
-			}
+        case "base64":
+        case "btoa":
+            try {
+                const decodedArray = Uint8Array.from(atob(value), (c) =>
+                    c.charCodeAt(0)
+                );
+                const decoder = new TextDecoder();
+                return decoder.decode(decodedArray);
+            } catch (error) {
+                console.warn(`Failed to decode Base64: ${error.message}`);
+                return value;
+            }
 
-		case "html-entities": {
-			const tempElement = document.createElement("div");
-			tempElement.innerHTML = value;
-			return tempElement.textContent;
-		}
+        case "html-entities": {
+            const tempElement = document.createElement("div");
+            tempElement.innerHTML = value;
+            return tempElement.textContent;
+        }
 
-		case "json":
-			try {
-				return JSON.parse(value);
-			} catch (error) {
-				console.warn(`Failed to parse JSON: ${error.message}`);
-				return value;
-			}
+        case "json":
+            try {
+                return JSON.parse(value);
+            } catch (error) {
+                console.warn(`Failed to parse JSON: ${error.message}`);
+                return value;
+            }
 
-		default:
-			console.warn(`Unsupported decoding type: ${decodingType}`);
-			return value;
-	}
+        default:
+            console.warn(`Unsupported decoding type: ${decodingType}`);
+            return value;
+    }
 }
 
 function parseJson(value, valueType) {
-	if (
-		value &&
-		(valueType === "object" ||
-			valueType === "json" ||
-			valueType.startsWith("array"))
-	) {
-		try {
-			value = JSON.parse(value);
-		} catch {
-			const jsonRegex = /(\{[\s\S]*}|\[[\s\S]*\])/;
-			const match = value.match(jsonRegex);
+    if (
+        value &&
+        (valueType === "object" ||
+            valueType === "json" ||
+            valueType.startsWith("array"))
+    ) {
+        try {
+            value = JSON.parse(value);
+        } catch {
+            const jsonRegex = /(\{[\s\S]*}|\[[\s\S]*\])/;
+            const match = value.match(jsonRegex);
 
-			if (match) {
-				try {
-					value = JSON.parse(match[0]);
-				} catch {
-					console.warn(
-						"Warning: Failed to parse JSON after extraction. Returning original value."
-					);
-				}
-			} else {
-				console.warn(
-					"Warning: No valid JSON structure found in the string. Returning original value."
-				);
-			}
-		}
-	}
-	return value;
+            if (match) {
+                try {
+                    value = JSON.parse(match[0]);
+                } catch {
+                    console.warn(
+                        "Warning: Failed to parse JSON after extraction. Returning original value."
+                    );
+                }
+            } else {
+                console.warn(
+                    "Warning: No valid JSON structure found in the string. Returning original value."
+                );
+            }
+        }
+    }
+    return value;
 }
 
 function toArray(value, valueType) {
-	if (valueType.startsWith("array")) {
-		if (!Array.isArray(value)) {
-			if (typeof value === "object" && value !== null) {
-				if (valueType === "array.$keys") {
-					value = Object.keys(value);
-				} else if (valueType === "array.$values") {
-					value = Object.values(value);
-				} else if (valueType === "array.$entries") {
-					value = Object.entries(value);
-				} else {
-					value = [value];
-				}
-			} else {
-				value = [value];
-			}
-		}
-	}
-	return value;
+    if (valueType.startsWith("array")) {
+        if (!Array.isArray(value)) {
+            if (typeof value === "object" && value !== null) {
+                if (valueType === "array.$keys") {
+                    value = Object.keys(value);
+                } else if (valueType === "array.$values") {
+                    value = Object.values(value);
+                } else if (valueType === "array.$entries") {
+                    value = Object.entries(value);
+                } else {
+                    value = [value];
+                }
+            } else {
+                value = [value];
+            }
+        }
+    }
+    return value;
 }
 
 export { getValue, getValueAsync, storage };
