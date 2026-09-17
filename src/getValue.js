@@ -136,7 +136,7 @@ const getValue = (element, valueType) => {
     }
 
     if (valueType === "boolean") {
-        return value && value !== "false";
+        return toBoolean(value);
     }
 
     if (value) {
@@ -261,7 +261,7 @@ const getValueAsync = async (element, valueType) => {
     }
 
     if (valueType === "boolean") {
-        return value && value !== "false";
+        return toBoolean(value);
     }
 
     if (value) {
@@ -309,6 +309,7 @@ const handleCheckbox = (element, prefix = "", suffix = "") => {
  * Handles and transforms a date/time value based on the specified valueType.
  */
 const handleDateTime = (element, value, valueType) => {
+    if ((value === "" || value === null || value === undefined) && !element.hasAttribute("now")) return "";
     const inputType = (element.getAttribute("type") || element.type || "").toLowerCase();
     let date;
 
@@ -813,6 +814,20 @@ function parseJson(value, valueType) {
         }
     }
     return value;
+}
+
+/**
+ * Converts element values to an explicit boolean.
+ */
+function toBoolean(value) {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value !== 0 && !Number.isNaN(value);
+    if (value === null || value === undefined) return false;
+
+    const normalized = String(value).trim().toLowerCase();
+    return !["", "false", "0", "off", "no", "null", "undefined"].includes(
+        normalized
+    );
 }
 
 function toArray(value, valueType) {

@@ -166,6 +166,25 @@ const setValue = (el, value, dispatch) => {
             let css = newElement.querySelector("link[array], link[object]");
             if (css) css.remove();
 
+            if (document.head) {
+                const stylesheets = newElement.querySelectorAll(
+                    'link[rel~="stylesheet"][href]'
+                );
+                for (const stylesheet of stylesheets) {
+                    const exists = Array.from(
+                        document.head.querySelectorAll(
+                            'link[rel~="stylesheet"][href]'
+                        )
+                    ).some(
+                        (link) =>
+                            link.href === stylesheet.href &&
+                            link.media === stylesheet.media
+                    );
+                    if (exists) stylesheet.remove();
+                    else document.head.appendChild(stylesheet);
+                }
+            }
+
             if (valueType == "outerHTML") {
                 let parentNode = el.parentNode;
                 if (parentNode) {
