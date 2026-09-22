@@ -1,4 +1,5 @@
 import { storage } from "./getValue.js";
+import { getValueAttribute, transformValue, convertValue } from "@cocreate/utils";
 
 HTMLElement.prototype.setValue = function (value, dispatch) {
     setValue(this, value, dispatch);
@@ -9,14 +10,16 @@ SVGElement.prototype.setValue = function (value, dispatch) {
 
 // TODO: check if using a a switch case will provide better performance
 const setValue = (el, value, dispatch) => {
-    let bubbles = el.hasAttribute("value-bubbles");
-    let valueDispatch = el.hasAttribute("value-dispatch");
+    let bubbles = ![null, false, "false"].includes(getValueAttribute(el, "bubbles", "set-value"));
+    let valueDispatch = ![null, false, "false"].includes(getValueAttribute(el, "dispatch", "set-value"));
     if (valueDispatch || valueDispatch === "") {
         if (value === "$false" || value === undefined || value === null)
             return dispatchEvents(el, bubbles, dispatch);
     }
 
     if (value === null || value === undefined) return;
+    value = transformValue(el, value, "set-value");
+    value = convertValue(value, getValueAttribute(el, "type", "set-value") || "");
     if (el.hasAttribute("component")) {
         storage.set(el, value);
         return dispatchEvents(el, bubbles, dispatch);
@@ -62,12 +65,16 @@ const setValue = (el, value, dispatch) => {
         }
     }
 
-    let valueType = el.getAttribute("value-type");
-    let prefix = el.getAttribute("value-prefix") || "";
-    if (prefix) value = value.toString().replace(prefix, "");
+    let valueType = getValueAttribute(el, "type", "set-value");
+    let prefix = getValueAttribute(el, "prefix", "set-value") || "";
+    if (prefix) value = el.hasAttribute("set-value-prefix")
+        ? prefix + value
+        : value.toString().replace(prefix, "");
 
-    let suffix = el.getAttribute("value-suffix") || "";
-    if (suffix) value = value.toString().replace(suffix, "");
+    let suffix = getValueAttribute(el, "suffix", "set-value") || "";
+    if (suffix) value = el.hasAttribute("set-value-suffix")
+        ? value + suffix
+        : value.toString().replace(suffix, "");
 
     // TODO: el.options vs rendenring options from src
     if (
@@ -185,7 +192,7 @@ const setValue = (el, value, dispatch) => {
                 }
             }
 
-            if (valueType == "outerHTML") {
+            if (valueType?.toLowerCase() === "outerhtml") {
                 let parentNode = el.parentNode;
                 if (parentNode) {
                     if (newElement.children.length > 0) {
@@ -261,8 +268,15 @@ function setScript(script, value) {
 
 function __decryptPassword(str) {
     if (!str) return "";
-    let decode_str = atob(str);
-    return decode_str;
+    const value = String(str);
+    try {
+        return atob(value);
+    } catch (error) {
+        // Password fields may also receive plain-text credentials from CRUD.
+        // Preserve those values instead of aborting the response render.
+        if (error.name !== "InvalidCharacterError") throw error;
+        return value;
+    }
 }
 
 function dispatchEvents(el, bubbles = true, skip = true) {

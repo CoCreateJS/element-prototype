@@ -15,6 +15,44 @@ A simple element-prototype component in vanilla javascript. Easily configured us
 
 For a complete guide and working demo refer to the [doumentation](https://cocreate.app/docs/element-prototype)
 
+## Value transformations
+
+Value transformations accept three attribute namespaces:
+
+- `value-*` applies to both reads and writes.
+- `get-value-*` applies to `getValue()` and `getValueAsync()`.
+- `set-value-*` applies to `setValue()`.
+
+Each direction-specific attribute overrides its corresponding shared attribute,
+regardless of attribute order. Other options still fall back independently.
+For example, `value-uppercase` with `set-value-uppercase="false"` uppercases
+only reads. An empty scoped regex/encoding attribute disables that operation;
+`"false"` also disables case, regex, and encoding/decoding transformations.
+An empty case attribute enables case conversion.
+
+Supported transformation suffixes include `lowercase`, `uppercase`, `replace`,
+`replaceall`, `replacement`, `test`, `match`, `split`, `lastindex`, `search`,
+`exec`, `encode`, and `decode`. The `type` suffix supports `boolean`, `object`,
+`json`, `array`, `array.$keys`, `array.$values`, and `array.$entries`, as well as
+existing element read/render types. `prefix` and `suffix` also honor scoped
+overrides, retaining their existing add-on-read and strip-on-write behavior.
+
+Setter transformations run in this order: case, regex operations (in effective
+attribute order), encoding, decoding, and type conversion. They run before
+component storage or element rendering. Components retain structured values;
+textareas serialize objects and arrays as JSON.
+
+```html
+<textarea value-uppercase></textarea>
+<textarea get-value-encode="base64" set-value-decode="base64"></textarea>
+<div component set-value-type="object"></div>
+```
+
+Calling `setValue('{"enabled":true}')` on the component above stores an object;
+its `getValue()` returns that object. Use scoped attributes for transformations
+that should happen only once: unscoped replacements or encoding can run again
+when reading a value that was previously written.
+
 ## CDN
 
 ```html
@@ -89,3 +127,23 @@ This software is dual-licensed under the GNU Affero General Public License versi
 -   **Commercial Use**: For-profit companies and individuals intending to use this software for commercial purposes must obtain a commercial license. The commercial license is available when you sign up for an API key on our [website](https://cocreate.app). This license permits proprietary use and modification of the software without the copyleft requirements of the AGPLv3. It is ideal for integrating this software into proprietary commercial products and applications.
 
 If you have not purchased a commercial license and intend to use this software for commercial purposes, you are required to sign up for an API key on our website.
+
+### Values on select options
+
+Select getters process each selected option through the corresponding synchronous
+or asynchronous value getter before applying the select's own transformations.
+A single select returns one processed value; `multiple` returns an array.
+
+```html
+<select>
+    <option value="">Any state</option>
+    <option value="true" value-type="boolean">Enabled</option>
+    <option value="false" value-type="boolean">Disabled</option>
+</select>
+```
+
+Here the values are `""`, `true`, and `false`. Types and transformations declared
+on options affect only those options. Existing select-level types still apply
+to the collected result; select-level prefixes and suffixes still apply to each
+value in a multiple select. With no selected option, the result is `""` for a
+single select or `[]` for a multiple select, before select-level transformations.

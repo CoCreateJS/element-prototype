@@ -17,6 +17,7 @@
  ********************************************************************************/
 
 import { astSync, astAsync } from "@cocreate/utils";
+import { getValueAttribute, transformValue, parseJson, toBoolean, toArray } from "@cocreate/utils";
 
 const storage = new Map();
 
@@ -43,10 +44,14 @@ SVGElement.prototype.getValueAsync = async function () {
  */
 const getValue = (element, valueType) => {
     if (!valueType) {
-        valueType = element.getAttribute("value-type") || "";
+        valueType = getValueAttribute(element, "type", "get-value") || "";
     }
 
-    let value = element.value || element.getAttribute("value") || "";
+    const evaluateValue = getValueAttribute(element, "evaluate", "get-value", true) !== "false";
+    const readValueAttribute = () => evaluateValue
+        ? element.getAttribute("value")
+        : element.attributes.getNamedItem("value")?.value;
+    let value = element.value || readValueAttribute() || "";
 
     if (
         element.hasAttribute("component") ||
@@ -58,8 +63,8 @@ const getValue = (element, valueType) => {
         return value;
     }
 
-    let prefix = element.getAttribute("value-prefix") || "";
-    let suffix = element.getAttribute("value-suffix") || "";
+    let prefix = getValueAttribute(element, "prefix", "get-value") || "";
+    let suffix = getValueAttribute(element, "suffix", "get-value") || "";
 
     const elementType = element.getAttribute("type") || element.type;
     const tagName = element.tagName.toUpperCase();
@@ -79,9 +84,8 @@ const getValue = (element, valueType) => {
         }
 
         case "number":
-            value = Number(value);
+            value = value === "" ? "" : Number(value);
             break;
-
         case "range":
             value = element.min
                 ? [Number(element.min), Number(element.value)]
@@ -109,18 +113,19 @@ const getValue = (element, valueType) => {
         default:
             switch (tagName) {
                 case "INPUT":
+                case "OPTION":
                     value = element.value;
                     break;
 
                 case "SELECT":
-                    value = element.hasAttribute("multiple")
-                        ? handleMultipleSelect(element, prefix, suffix)
-                        : element.value;
+                    value = handleSelectedValues(element,
+                        Array.from(element.selectedOptions, option => getValue(option)),
+                        prefix, suffix);
                     break;
 
                 case "TEXTAREA":
                     value = element.hasAttribute("value")
-                        ? element.getAttribute("value")
+                        ? readValueAttribute()
                         : element.value;
                     break;
 
@@ -129,7 +134,7 @@ const getValue = (element, valueType) => {
                     break;
 
                 default:
-                    value = handleElement(element, valueType);
+                    value = handleElement(element, valueType, evaluateValue);
                     break;
             }
             break;
@@ -140,11 +145,10 @@ const getValue = (element, valueType) => {
     }
 
     if (value) {
-        value = astSync({ executeAST: value, node: element, exclude: ["$value"] });
-        value = caseHandler(element, value);
-        value = regex(element, value);
-        value = encodeValue(value, element.getAttribute("value-encode") || "");
-        value = decodeValue(value, element.getAttribute("value-decode") || "");
+        if (evaluateValue) {
+            value = astSync({ executeAST: value, node: element, exclude: ["$value"] });
+        }
+        value = transformValue(element, value, "get-value");
     }
 
     if (typeof value === "string" || typeof value === "number") {
@@ -168,10 +172,14 @@ const getValue = (element, valueType) => {
  */
 const getValueAsync = async (element, valueType) => {
     if (!valueType) {
-        valueType = element.getAttribute("value-type") || "";
+        valueType = getValueAttribute(element, "type", "get-value") || "";
     }
 
-    let value = element.value || element.getAttribute("value") || "";
+    const evaluateValue = getValueAttribute(element, "evaluate", "get-value", true) !== "false";
+    const readValueAttribute = () => evaluateValue
+        ? element.getAttribute("value")
+        : element.attributes.getNamedItem("value")?.value;
+    let value = element.value || readValueAttribute() || "";
 
     if (
         element.hasAttribute("component") ||
@@ -183,8 +191,8 @@ const getValueAsync = async (element, valueType) => {
         return value;
     }
 
-    let prefix = element.getAttribute("value-prefix") || "";
-    let suffix = element.getAttribute("value-suffix") || "";
+    let prefix = getValueAttribute(element, "prefix", "get-value") || "";
+    let suffix = getValueAttribute(element, "suffix", "get-value") || "";
 
     const elementType = element.getAttribute("type") || element.type;
     const tagName = element.tagName.toUpperCase();
@@ -234,18 +242,19 @@ const getValueAsync = async (element, valueType) => {
         default:
             switch (tagName) {
                 case "INPUT":
+                case "OPTION":
                     value = element.value;
                     break;
 
                 case "SELECT":
-                    value = element.hasAttribute("multiple")
-                        ? handleMultipleSelect(element, prefix, suffix)
-                        : element.value;
+                    value = handleSelectedValues(element,
+                        await Promise.all(Array.from(element.selectedOptions, option => getValueAsync(option))),
+                        prefix, suffix);
                     break;
 
                 case "TEXTAREA":
                     value = element.hasAttribute("value")
-                        ? element.getAttribute("value")
+                        ? readValueAttribute()
                         : element.value;
                     break;
 
@@ -254,7 +263,7 @@ const getValueAsync = async (element, valueType) => {
                     break;
 
                 default:
-                    value = handleElement(element, valueType);
+                    value = handleElement(element, valueType, evaluateValue);
                     break;
             }
             break;
@@ -265,11 +274,10 @@ const getValueAsync = async (element, valueType) => {
     }
 
     if (value) {
-        value = await astAsync({ executeAST: value, node: element, exclude: ["$value"] });
-        value = caseHandler(element, value);
-        value = regex(element, value);
-        value = encodeValue(value, element.getAttribute("value-encode") || "");
-        value = decodeValue(value, element.getAttribute("value-decode") || "");
+        if (evaluateValue) {
+            value = await astAsync({ executeAST: value, node: element, exclude: ["$value"] });
+        }
+        value = transformValue(element, value, "get-value");
     }
 
     if (typeof value === "string" || typeof value === "number") {
@@ -533,33 +541,27 @@ const handleDateTime = (element, value, valueType) => {
 };
 
 /**
- * Processes a <select> element with the "multiple" attribute.
+ * Collects processed option values, retaining select-level multi-value affixes.
  */
-const handleMultipleSelect = (element, prefix, suffix) => {
-    let value = [];
-    let options = element.selectedOptions;
-
-    for (let i = 0; i < options.length; i++) {
-        let optionValue = options[i].value;
-        if (prefix || suffix) {
-            optionValue = prefix + optionValue + suffix;
-        }
-        value.push(optionValue);
-    }
-
-    return value;
+const handleSelectedValues = (element, values, prefix, suffix) => {
+    if (!element.hasAttribute("multiple")) return values.length ? values[0] : "";
+    return prefix || suffix
+        ? values.map(value => prefix + value + suffix)
+        : values;
 };
 
 /**
  * Retrieves a value from a standard element.
  */
-const handleElement = (element, valueType) => {
+const handleElement = (element, valueType, evaluateValue) => {
     if (element.hasAttribute("value")) {
-        return element.getAttribute("value");
+        return evaluateValue
+            ? element.getAttribute("value")
+            : element.attributes.getNamedItem("value")?.value;
     }
 
     let targetElement = element;
-    const excludeSelector = element.getAttribute("value-remove-query");
+    const excludeSelector = getValueAttribute(element, "remove-query", "get-value");
 
     if (excludeSelector) {
         targetElement = element.cloneNode(true);
@@ -579,276 +581,5 @@ const handleElement = (element, valueType) => {
             return targetElement.innerHTML;
     }
 };
-
-/**
- * Adjusts casing transformations on attributes.
- */
-function caseHandler(element, value) {
-    const lowercase = element.getAttribute("value-lowercase");
-    if (lowercase !== null && lowercase !== "false") {
-        value = value.toLowerCase();
-    }
-
-    const uppercase = element.getAttribute("value-uppercase");
-    if (uppercase !== null && uppercase !== "false") {
-        value = value.toUpperCase();
-    }
-
-    return value;
-}
-
-/**
- * Transforms output based on Regular Expression definitions.
- */
-function regex(element, value) {
-    try {
-        const attributes = element.attributes;
-        const regexAttribute = [
-            "value-replace",
-            "value-replaceall",
-            "value-test",
-            "value-match",
-            "value-split",
-            "value-lastindex",
-            "value-search",
-            "value-exec"
-        ];
-
-        for (let i = 0; i < attributes.length; i++) {
-            if (value === null || value === undefined) break;
-            if (!regexAttribute.includes(attributes[i].name)) continue;
-
-            let regexAttributeValue = attributes[i].value;
-            if (!regexAttributeValue) continue;
-
-            let { regex, replacement } = regexParser(regexAttributeValue);
-            if (regex) regexAttributeValue = regex;
-
-            replacement =
-                replacement || element.getAttribute("value-replacement") || "";
-
-            switch (attributes[i].name) {
-                case "value-replace":
-                    value = value.replace(regexAttributeValue, replacement);
-                    break;
-                case "value-replaceall":
-                    value = value.replaceAll(regexAttributeValue, replacement);
-                    break;
-                case "value-test":
-                    value = regex.test(value);
-                    break;
-                case "value-match": {
-                    const matches = value.match(regexAttributeValue);
-                    if (matches) {
-                        value = matches[1] || matches[0];
-                    }
-                    break;
-                }
-                case "value-split":
-                    value = value.split(regexAttributeValue);
-                    break;
-                case "value-lastindex":
-                    regex.lastIndex = 0;
-                    regex.test(value);
-                    value = regex.lastIndex;
-                    break;
-                case "value-search":
-                    value = value.search(regexAttributeValue);
-                    break;
-                case "value-exec": {
-                    const execResult = regex.exec(value);
-                    if (execResult) {
-                        value = execResult[1] || execResult[2] || execResult[0];
-                    }
-                    break;
-                }
-            }
-        }
-
-        return value;
-    } catch (error) {
-        console.warn(
-            "Warning: Transformation error during regex operation:",
-            error,
-            element
-        );
-        return value;
-    }
-}
-
-function regexParser(string) {
-    let regex, replacement;
-    let regexMatch = string.match(/\/(.+)\/([gimuy]*)/);
-
-    if (regexMatch) {
-        regex = new RegExp(regexMatch[1], regexMatch[2]);
-        const splitReplace = string.split(", ");
-        replacement =
-            splitReplace.length > 1 ? splitReplace[1].slice(1, -1) : "";
-    }
-
-    return { regex, replacement };
-}
-
-/**
- * Encodes calculated structures securely.
- */
-function encodeValue(value, encodingType) {
-    if (!encodingType) {
-        return value;
-    }
-
-    switch (encodingType.toLowerCase()) {
-        case "url":
-        case "uri":
-            return encodeURI(value.replace(/ /g, "%20"));
-
-        case "uri-component":
-            return encodeURIComponent(value.replace(/ /g, "%20"));
-
-        case "base64":
-        case "atob":
-            try {
-                const encoder = new TextEncoder();
-                const uint8Array = encoder.encode(value);
-                return btoa(String.fromCharCode(...uint8Array));
-            } catch (error) {
-                console.warn(`Failed to encode as Base64: ${error.message}`);
-                return value;
-            }
-
-        case "html-entities":
-            return value.replace(/[\u00A0-\u9999<>\&]/g, (i) => {
-                return `&#${i.charCodeAt(0)};`;
-            });
-
-        case "json":
-            try {
-                return JSON.stringify(value);
-            } catch (error) {
-                console.warn(`Failed to convert to JSON: ${error.message}`);
-                return value;
-            }
-
-        default:
-            console.warn(`Unsupported encoding type: ${encodingType}`);
-            return value;
-    }
-}
-
-/**
- * Decodes calculated structures securely.
- */
-function decodeValue(value, decodingType) {
-    if (!decodingType) {
-        return value;
-    }
-
-    switch (decodingType.toLowerCase()) {
-        case "url":
-        case "uri":
-            return decodeURI(value);
-
-        case "uri-component":
-            return decodeURIComponent(value);
-
-        case "base64":
-        case "btoa":
-            try {
-                const decodedArray = Uint8Array.from(atob(value), (c) =>
-                    c.charCodeAt(0)
-                );
-                const decoder = new TextDecoder();
-                return decoder.decode(decodedArray);
-            } catch (error) {
-                console.warn(`Failed to decode Base64: ${error.message}`);
-                return value;
-            }
-
-        case "html-entities": {
-            const tempElement = document.createElement("div");
-            tempElement.innerHTML = value;
-            return tempElement.textContent;
-        }
-
-        case "json":
-            try {
-                return JSON.parse(value);
-            } catch (error) {
-                console.warn(`Failed to parse JSON: ${error.message}`);
-                return value;
-            }
-
-        default:
-            console.warn(`Unsupported decoding type: ${decodingType}`);
-            return value;
-    }
-}
-
-function parseJson(value, valueType) {
-    if (
-        value &&
-        (valueType === "object" ||
-            valueType === "json" ||
-            valueType.startsWith("array"))
-    ) {
-        try {
-            value = JSON.parse(value);
-        } catch {
-            const jsonRegex = /(\{[\s\S]*}|\[[\s\S]*\])/;
-            const match = value.match(jsonRegex);
-
-            if (match) {
-                try {
-                    value = JSON.parse(match[0]);
-                } catch {
-                    console.warn(
-                        "Warning: Failed to parse JSON after extraction. Returning original value."
-                    );
-                }
-            } else {
-                console.warn(
-                    "Warning: No valid JSON structure found in the string. Returning original value."
-                );
-            }
-        }
-    }
-    return value;
-}
-
-/**
- * Converts element values to an explicit boolean.
- */
-function toBoolean(value) {
-    if (typeof value === "boolean") return value;
-    if (typeof value === "number") return value !== 0 && !Number.isNaN(value);
-    if (value === null || value === undefined) return false;
-
-    const normalized = String(value).trim().toLowerCase();
-    return !["", "false", "0", "off", "no", "null", "undefined"].includes(
-        normalized
-    );
-}
-
-function toArray(value, valueType) {
-    if (valueType.startsWith("array")) {
-        if (!Array.isArray(value)) {
-            if (typeof value === "object" && value !== null) {
-                if (valueType === "array.$keys") {
-                    value = Object.keys(value);
-                } else if (valueType === "array.$values") {
-                    value = Object.values(value);
-                } else if (valueType === "array.$entries") {
-                    value = Object.entries(value);
-                } else {
-                    value = [value];
-                }
-            } else {
-                value = [value];
-            }
-        }
-    }
-    return value;
-}
 
 export { getValue, getValueAsync, storage };
