@@ -133,6 +133,10 @@ const getValue = (element, valueType) => {
                     value = element.srcdoc;
                     break;
 
+                case "IMG":
+                    value = element.src;
+                    break;
+
                 default:
                     value = handleElement(element, valueType, evaluateValue);
                     break;
