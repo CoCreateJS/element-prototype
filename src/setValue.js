@@ -145,7 +145,8 @@ const setValue = (el, value, dispatch) => {
     } else if (el.tagName === "IMG" || el.tagName === "SOURCE") {
         el.src = value;
     } else if (el.tagName === "IFRAME") {
-        el.srcdoc = value;
+        if (el.hasAttribute("src")) el.src = value;
+        else el.srcdoc = value;
     } else if (el.tagName === "SCRIPT") {
         setScript(el, value);
     } else if (el.hasAttribute("value")) {

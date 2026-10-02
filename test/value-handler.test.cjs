@@ -245,6 +245,21 @@ test('explicit setter prefix and suffix build the rendered value', async () => {
     el.setValue('aws');
     assert.equal(el.value, '/assets/images/providers/aws.svg');
 });
+
+test('iframes use src when the src attribute is present and srcdoc otherwise', async () => {
+    const Element = await setup();
+    const srcFrame = new Element({ src: '' }, 'IFRAME');
+    const srcdocFrame = new Element({}, 'IFRAME');
+
+    srcFrame.setValue('/assets/files/preview.html');
+    srcdocFrame.setValue('<h1>Preview</h1>');
+
+    assert.equal(srcFrame.src, '/assets/files/preview.html');
+    assert.equal(srcFrame.srcdoc, undefined);
+    assert.equal(srcdocFrame.src, undefined);
+    assert.equal(srcdocFrame.srcdoc, '<h1>Preview</h1>');
+});
+
 test('shared affixes retain the existing get/set round trip', async () => {
     const Element = await setup();
     const el = new Element({'value-prefix':'[', 'value-suffix':']'});
