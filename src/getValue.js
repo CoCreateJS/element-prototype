@@ -71,7 +71,7 @@ const getValue = (element, valueType) => {
 
     switch (elementType) {
         case "checkbox":
-            value = handleCheckbox(element, prefix, suffix);
+            value = handleCheckbox(element, prefix, suffix, valueType);
             break;
 
         case "radio": {
@@ -203,7 +203,7 @@ const getValueAsync = async (element, valueType) => {
 
     switch (elementType) {
         case "checkbox":
-            value = handleCheckbox(element, prefix, suffix);
+            value = handleCheckbox(element, prefix, suffix, valueType);
             break;
 
         case "radio": {
@@ -299,7 +299,7 @@ const getValueAsync = async (element, valueType) => {
 /**
  * Processes a checkbox or a group of checkboxes to determine their checked values.
  */
-const handleCheckbox = (element, prefix = "", suffix = "") => {
+const handleCheckbox = (element, prefix = "", suffix = "", valueType = "") => {
     const inputs = element.getAttribute("key")
         ? document.querySelectorAll(
             `input[type="${element.type}"][key="${element.getAttribute(
@@ -309,6 +309,8 @@ const handleCheckbox = (element, prefix = "", suffix = "") => {
         : [element];
 
     if (inputs.length === 1) {
+        if (valueType.startsWith("array"))
+            return element.checked ? [element.value || true] : [];
         return element.checked ? element.value || true : false;
     } else {
         return Array.from(inputs)
