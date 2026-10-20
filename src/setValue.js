@@ -155,8 +155,10 @@ const setValue = (el, value, dispatch) => {
         if (el.hasAttribute("contenteditable") && el == document.activeElement)
             return;
 
-        if (valueType == "string" || valueType == "text")
+        if (valueType == "string" || valueType == "text" || valueType == "textContent")
             el.textContent = value;
+        else if (valueType == "innerText")
+            el.innerText = value;
         else {
             let newElement = document.createElement("div");
             newElement.innerHTML = value;

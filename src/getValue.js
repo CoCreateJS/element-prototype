@@ -578,7 +578,10 @@ const handleElement = (element, valueType, evaluateValue) => {
 
     switch (valueType) {
         case "text":
+        case "innerText":
             return targetElement.innerText;
+        case "textContent":
+            return targetElement.textContent;
         case "outerHTML":
         case "element":
         case "node":
