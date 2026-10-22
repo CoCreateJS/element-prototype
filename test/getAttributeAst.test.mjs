@@ -69,7 +69,7 @@ const directStringLabelExpression = JSON.stringify({
 });
 
 const quotedOperatorLabelExpression =
-	"$('\u0024value' === 'true' ? 'Enabled' : 'Disabled')";
+	"$(`\u0024value` === 'true' ? 'Enabled' : 'Disabled')";
 
 test("input.value evaluates direct string equality branches", async () => {
 	for (const [value, expected] of [["true", "Enabled"], ["false", "Disabled"]]) {
@@ -80,7 +80,7 @@ test("input.value evaluates direct string equality branches", async () => {
 	}
 });
 
-test("input.value evaluates quoted OperatorJS values as strings", () => {
+test("input.value evaluates backtick OperatorJS values as strings", () => {
 	for (const [value, expected] of [["true", "Enabled"], ["false", "Disabled"]]) {
 		const element = new TestElement({ "input.value": quotedOperatorLabelExpression }, value);
 		assert.equal(getAttribute(element, "input.value"), expected);

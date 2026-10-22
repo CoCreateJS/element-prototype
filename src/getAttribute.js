@@ -76,8 +76,16 @@ function getAttribute(element, name) {
         throw new Error("First argument must be an Element");
     }
     
-    const value = parseObjectValue(originalGetAttribute.call(element, name));
-    if (value === null || value === undefined || value === "") return value;
+    const rawValue = originalGetAttribute.call(element, name);
+    if (typeof rawValue !== "string") return rawValue;
+    // Preserve a whole literal for its next consumer without evaluating operators.
+    if (
+        rawValue.length >= 2 &&
+        rawValue.startsWith("`") &&
+        rawValue.indexOf("`", 1) === rawValue.length - 1
+    ) return rawValue.slice(1, -1);
+    if (!rawValue.includes("$")) return rawValue;
+    const value = parseObjectValue(rawValue);
     
     // Evaluate formulas or step paths synchronously via the unified AST Engine
     return astSync({
@@ -98,8 +106,16 @@ async function getAttributeAsync(element, name) {
         throw new Error("First argument must be an Element");
     }
     
-    const value = parseObjectValue(originalGetAttribute.call(element, name));
-    if (value === null || value === undefined || value === "") return value;
+    const rawValue = originalGetAttribute.call(element, name);
+    if (typeof rawValue !== "string") return rawValue;
+    // Preserve a whole literal for its next consumer without evaluating operators.
+    if (
+        rawValue.length >= 2 &&
+        rawValue.startsWith("`") &&
+        rawValue.indexOf("`", 1) === rawValue.length - 1
+    ) return rawValue.slice(1, -1);
+    if (!rawValue.includes("$")) return rawValue;
+    const value = parseObjectValue(rawValue);
     
     // Evaluate async formulas, database lookups, or template blocks asynchronously
     return await astAsync({
