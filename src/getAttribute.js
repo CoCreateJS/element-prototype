@@ -51,6 +51,20 @@ function updateAttributes(e) {
     }
 }
 
+function parseObjectValue(value) {
+    if (typeof value !== "string") return value;
+
+    const firstCharacter = value.trimStart()[0];
+    if (firstCharacter !== "{" && firstCharacter !== "[") return value;
+
+    try {
+        const parsed = JSON.parse(value);
+        return parsed !== null && typeof parsed === "object" ? parsed : value;
+    } catch {
+        return value;
+    }
+}
+
 /**
  * Custom getAttribute function that processes the attribute value synchronously
  * @param {Element} element - The element from which to get the attribute
@@ -62,13 +76,15 @@ function getAttribute(element, name) {
         throw new Error("First argument must be an Element");
     }
     
-    const value = originalGetAttribute.call(element, name);
-    if (!value || typeof value !== "string") {
-        return value;
-    }
+    const value = parseObjectValue(originalGetAttribute.call(element, name));
+    if (value === null || value === undefined || value === "") return value;
     
     // Evaluate formulas or step paths synchronously via the unified AST Engine
-    return astSync({ executeAST: value, node: element });
+    return astSync({
+        executeAST: value,
+        node: element,
+        sandbox: { $this: element }
+    });
 }
 
 /**
@@ -82,13 +98,15 @@ async function getAttributeAsync(element, name) {
         throw new Error("First argument must be an Element");
     }
     
-    const value = originalGetAttribute.call(element, name);
-    if (!value || typeof value !== "string") {
-        return value;
-    }
+    const value = parseObjectValue(originalGetAttribute.call(element, name));
+    if (value === null || value === undefined || value === "") return value;
     
     // Evaluate async formulas, database lookups, or template blocks asynchronously
-    return await astAsync({ executeAST: value, node: element });
+    return await astAsync({
+        executeAST: value,
+        node: element,
+        sandbox: { $this: element }
+    });
 }
 
 // Override the native getAttribute method on the global Element prototype
