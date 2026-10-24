@@ -82,9 +82,7 @@ const setValue = (el, value, dispatch) => {
         el.tagName == "TEXTAREA" ||
         el.tagName == "SELECT"
     ) {
-        // TODO: attribute config undefined when used with onload-value
-        let isCrdt = el.getAttribute("crdt");
-        if (isCrdt == "true" || el.type === "file") return;
+        if (el.getAttribute("crdt") == "true" || el.type === "file") return;
 
         if (el.type == "checkbox") {
             let inputs = [el];
@@ -146,7 +144,24 @@ const setValue = (el, value, dispatch) => {
         el.src = value;
     } else if (el.tagName === "IFRAME") {
         if (el.hasAttribute("src")) el.src = value;
-        else el.srcdoc = value;
+        else if (el.hasAttribute("srcdoc")) el.srcdoc = value;
+        else {
+            const doc = el.contentDocument;
+            const parsedDocument = new DOMParser().parseFromString(
+                String(value),
+                "text/html"
+            );
+            const sourceRoot = parsedDocument.documentElement;
+            const targetRoot = doc.documentElement;
+
+            for (const attribute of Array.from(sourceRoot.attributes))
+                targetRoot.setAttribute(attribute.name, attribute.value);
+
+            targetRoot.replaceChildren(...Array.from(sourceRoot.childNodes));
+
+            for (const script of targetRoot.querySelectorAll("script"))
+                setScript(script, undefined, true);
+        }
     } else if (el.tagName === "SCRIPT") {
         setScript(el, value);
     } else if (el.hasAttribute("value")) {
@@ -237,9 +252,9 @@ const setValue = (el, value, dispatch) => {
     dispatchEvents(el, bubbles, dispatch);
 };
 
-function setScript(script, value) {
+function setScript(script, value, allowCrossOrigin = false) {
     let srcAttribute = script.src;
-    if (srcAttribute) {
+    if (srcAttribute && !allowCrossOrigin) {
         let pageOrigin = window.location.origin;
         let srcOrigin;
 
