@@ -1,4 +1,3 @@
-import { storage } from "./getValue.js";
 import { getValueAttribute, transformValue, convertValue } from "@cocreate/utils";
 
 HTMLElement.prototype.setValue = function (value, dispatch) {
@@ -8,7 +7,6 @@ SVGElement.prototype.setValue = function (value, dispatch) {
     setValue(this, value, dispatch);
 };
 
-// TODO: check if using a a switch case will provide better performance
 const setValue = (el, value, dispatch) => {
     let bubbles = ![null, false, "false"].includes(getValueAttribute(el, "bubbles", "set-value"));
     let valueDispatch = ![null, false, "false"].includes(getValueAttribute(el, "dispatch", "set-value"));
@@ -20,10 +18,17 @@ const setValue = (el, value, dispatch) => {
     if (value === null || value === undefined) return;
     value = transformValue(el, value, "set-value");
     value = convertValue(value, getValueAttribute(el, "type", "set-value") || "");
-    if (el.hasAttribute("component")) {
-        storage.set(el, value);
-        return dispatchEvents(el, bubbles, dispatch);
-    } else if (typeof value === "object") {
+    const nativeValueElement = ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName);
+    if (!nativeValueElement && (
+        el.hasAttribute("component") ||
+        ((el.__cocreateEditor || el.hasAttribute("editor") || el.hasAttribute("editor-language") ||
+            (el.hasAttribute("contenteditable") && el.getAttribute("contenteditable") !== "false")) &&
+            el.tagName !== "IFRAME")
+    )) {
+        el.value = value;
+        return dispatchEvents(el, bubbles, dispatch, value);
+    }
+    if (typeof value === "object") {
         value = JSON.stringify(value, null, 2);
     }
 
@@ -82,7 +87,7 @@ const setValue = (el, value, dispatch) => {
         el.tagName == "TEXTAREA" ||
         el.tagName == "SELECT"
     ) {
-        if (el.getAttribute("crdt") == "true" || el.type === "file") return;
+        if (el.type === "file") return;
 
         if (el.type == "checkbox") {
             let inputs = [el];
@@ -249,7 +254,7 @@ const setValue = (el, value, dispatch) => {
         }
     }
 
-    dispatchEvents(el, bubbles, dispatch);
+    dispatchEvents(el, bubbles, dispatch, value);
 };
 
 function setScript(script, value, allowCrossOrigin = false) {
@@ -297,11 +302,12 @@ function __decryptPassword(str) {
     }
 }
 
-function dispatchEvents(el, bubbles = true, skip = true) {
+function dispatchEvents(el, bubbles = true, skip = true, value) {
     let inputEvent = new CustomEvent("input", {
         bubbles,
         detail: {
-            skip
+            skip,
+            value
         }
     });
 
@@ -314,7 +320,8 @@ function dispatchEvents(el, bubbles = true, skip = true) {
     let changeEvent = new CustomEvent("change", {
         bubbles,
         detail: {
-            skip
+            skip,
+            value
         }
     });
 

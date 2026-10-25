@@ -15,6 +15,55 @@ A simple element-prototype component in vanilla javascript. Easily configured us
 
 For a complete guide and working demo refer to the [doumentation](https://cocreate.app/docs/element-prototype)
 
+## Generic element values
+
+For generic elements, including contenteditable elements, `getValue()` and
+`getValueAsync()` select the `value` attribute first, then the `.value` property
+when it exists, and finally `innerHTML`. An empty attribute or property remains
+an empty value; it does not fall through to rendered content.
+
+Explicit DOM read types bypass both stored values: `get-value-type="text"` or
+`"innerText"` reads visible text, `"textContent"` reads text content,
+`"innerHTML"` reads inner markup, and `"outerHTML"`, `"element"`, or `"node"`
+reads outer markup. `value-type` supplies the same options when a scoped
+`get-value-type` is not specified. Conversion types such as `boolean` and `json`
+retain the normal value precedence and convert the selected value afterward.
+DOM reads still support `get-value-remove-query` filtering.
+The prototype methods also accept an explicit type argument, such as
+`element.getValue("textContent")` or `element.getValueAsync("innerHTML")`.
+Programmatically claimed Editor hosts use property storage even before their
+initial asynchronous read has finished.
+
+Non-native elements marked with `component`, `editor`, `editor-language`, or
+an enabled `contenteditable` attribute
+store incoming values on their own `.value` property after setter transformations
+and conversion, then dispatch
+the configured events. This branch does not write a `value` attribute or replace
+DOM content directly. An existing property setter, such as Editor's source setter,
+still runs when `.value` is assigned. Generic elements can retain structured
+objects and arrays without JSON serialization. Inputs, textareas, and selects
+follow their native field paths even with these marker attributes. Iframes use
+their dedicated setter path when marked `editor` or `editor-language`, while an
+explicit `component` marker still opts an iframe into property storage;
+checkbox, radio, select, password, and date handling therefore still applies.
+`crdt="true"` no longer suppresses shared-setter native assignments; file inputs
+remain excluded from ordinary value assignment.
+
+The shared getters return these stored component/editor values directly without
+consuming them. Before an editor has a `.value` property, its getter still uses
+the existing element-specific or generic fallback to support initialization.
+Component/editor/contenteditable reads bypass the generic precedence and transformations above,
+as component storage did previously. Native field and iframe handling retain
+their dedicated paths when this component/editor branch does not apply. Element
+methods supplied by a component may bypass this shared handler. Editor preserves
+these shared methods and consumes their input notifications. Setter-generated
+`input` and `change` events include the replacement in `event.detail.value`,
+alongside the existing `skip` flag; source-only notifications can omit the value.
+This lets an iframe adapter receive a full reset's source without assigning
+`src` or `srcdoc` itself. Before an iframe has a stored value, the shared getter
+reads its `srcdoc` attribute or serializes its accessible current document.
+No separate component value storage Map is used.
+
 ## Value transformations
 
 Value transformations accept three attribute namespaces:

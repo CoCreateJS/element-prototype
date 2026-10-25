@@ -37,6 +37,9 @@ async function setup() {
         this.setExport('astSync', ({ executeAST }) => executeAST);
         this.setExport('astAsync', async ({ executeAST }) => executeAST);
     }, { context });
+    const getter = load('getValue.js');
+    await getter.link(() => utils);
+    await getter.evaluate();
     const setter = load('setValue.js');
     await setter.link(specifier => specifier === '@cocreate/utils' ? utils : load(specifier));
     await setter.evaluate();
@@ -77,7 +80,7 @@ test('component storage retains parsed objects and arrays', async () => {
         ['array.$keys', '{"a":1}', ['a']],
         ['boolean', 'false', false]
     ]) {
-        const el = new Element({ component: '', 'set-value-type': type });
+        const el = new Element({ component: '', 'set-value-type': type }, 'DIV');
         el.setValue(input);
         assert.equal(JSON.stringify(el.getValue()), JSON.stringify(expected));
         assert.deepEqual(el.events, ['input', 'change']);
@@ -87,7 +90,7 @@ test('component storage retains parsed objects and arrays', async () => {
 test('existing objects keep their identity in component storage', async () => {
     const Element = await setup();
     const value = { a: 1 };
-    const el = new Element({ component: '', 'set-value-type': 'object', 'set-value-uppercase': '' });
+    const el = new Element({ component: '', 'set-value-type': 'object', 'set-value-uppercase': '' }, 'DIV');
     el.setValue(value);
     assert.equal(el.getValue(), value);
 });
@@ -101,7 +104,7 @@ test('textarea serializes objects after setter transformations', async () => {
 
 test('regex may return a non-string without subsequent string operations failing', async () => {
     const Element = await setup();
-    const el = new Element({ component: '', 'set-value-split': ',', 'set-value-replace': 'a' });
+    const el = new Element({ component: '', 'set-value-split': ',', 'set-value-replace': 'a' }, 'DIV');
     el.setValue('a,b');
     assert.equal(JSON.stringify(el.getValue()), '["a","b"]');
 });
@@ -161,10 +164,10 @@ test('each option falls back independently to shared attributes', async () => {
 
 test('shared and scoped type conversion applies before component storage', async () => {
     const Element = await setup();
-    const shared = new Element({ component: '', 'value-type': 'object' });
+    const shared = new Element({ component: '', 'value-type': 'object' }, 'DIV');
     shared.setValue('{"a":1}');
     assert.equal(JSON.stringify(shared.getValue()), '{"a":1}');
-    const scoped = new Element({ component: '', 'value-type': 'object', 'set-value-type': 'array.$keys' });
+    const scoped = new Element({ component: '', 'value-type': 'object', 'set-value-type': 'array.$keys' }, 'DIV');
     scoped.setValue('{"a":1}');
     assert.equal(JSON.stringify(scoped.getValue()), '["a"]');
 });
@@ -246,10 +249,10 @@ test('explicit setter prefix and suffix build the rendered value', async () => {
     assert.equal(el.value, '/assets/images/providers/aws.svg');
 });
 
-test('iframes use src when the src attribute is present and srcdoc otherwise', async () => {
+test('iframes honor explicit src and srcdoc setter paths', async () => {
     const Element = await setup();
     const srcFrame = new Element({ src: '' }, 'IFRAME');
-    const srcdocFrame = new Element({}, 'IFRAME');
+    const srcdocFrame = new Element({ srcdoc: '' }, 'IFRAME');
 
     srcFrame.setValue('/assets/files/preview.html');
     srcdocFrame.setValue('<h1>Preview</h1>');
@@ -272,4 +275,46 @@ test('empty setter affixes override shared affixes', async () => {
     const el = new Element({'value-prefix':'[', 'value-suffix':']', 'set-value-prefix':'', 'set-value-suffix':''});
     el.setValue('[aws]');
     assert.equal(el.value, '[aws]');
+});
+
+test('generic values prefer attributes then properties while explicit reads select the DOM', async () => {
+    const Element = await setup();
+    const el = new Element({ value: '' }, 'DIV');
+    el.value = 'property';
+    el.innerHTML = '<b>markup</b>';
+    el.textContent = 'markup';
+    assert.equal(el.getValue(), '');
+    assert.equal(await el.getValueAsync(), '');
+    assert.equal(el.getValue('textContent'), 'markup');
+    assert.equal(await el.getValueAsync('innerHTML'), '<b>markup</b>');
+    el.attributes.splice(0);
+    el.value = '';
+    assert.equal(el.getValue(), '');
+    delete el.value;
+    assert.equal(el.getValue(), '<b>markup</b>');
+});
+
+test('component values stay on the element across repeated asynchronous reads', async () => {
+    const Element = await setup();
+    const el = new Element({ component: '' }, 'DIV'), value = { source: 'stored' };
+    el.setValue(value);
+    assert.equal(el.value, value);
+    assert.equal(await el.getValueAsync(), value);
+    assert.equal(await el.getValueAsync(), value);
+    assert.equal(el.getValue(), value);
+});
+
+test('component and editor markers do not bypass native checkbox handling', async () => {
+    const Element = await setup();
+    for (const marker of ['component', 'editor', 'editor-language']) {
+        const el = new Element({ [marker]: '', value: 'yes' }, 'INPUT');
+        el.type = 'checkbox';
+        el.value = 'yes';
+        el.setValue(true);
+        assert.equal(el.checked, true);
+        assert.equal(el.value, 'yes');
+        el.setValue(false);
+        assert.equal(el.checked, false);
+        assert.equal(el.getValue(), false);
+    }
 });

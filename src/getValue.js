@@ -19,20 +19,18 @@
 import { astSync, astAsync } from "@cocreate/utils";
 import { getValueAttribute, transformValue, parseJson, toBoolean, toArray } from "@cocreate/utils";
 
-const storage = new Map();
-
-HTMLElement.prototype.getValue = function () {
-    return getValue(this);
+HTMLElement.prototype.getValue = function (valueType) {
+    return getValue(this, valueType);
 };
-SVGElement.prototype.getValue = function () {
-    return getValue(this);
+SVGElement.prototype.getValue = function (valueType) {
+    return getValue(this, valueType);
 };
 
-HTMLElement.prototype.getValueAsync = async function () {
-    return await getValueAsync(this);
+HTMLElement.prototype.getValueAsync = async function (valueType) {
+    return await getValueAsync(this, valueType);
 };
-SVGElement.prototype.getValueAsync = async function () {
-    return await getValueAsync(this);
+SVGElement.prototype.getValueAsync = async function (valueType) {
+    return await getValueAsync(this, valueType);
 };
 
 /**
@@ -54,13 +52,16 @@ const getValue = (element, valueType) => {
     let value = element.value || readValueAttribute() || "";
 
     if (
-        element.hasAttribute("component") ||
+        (!["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName) && (
+            element.hasAttribute("component") ||
+            ((element.__cocreateEditor || element.hasAttribute("editor") || element.hasAttribute("editor-language") ||
+                (element.hasAttribute("contenteditable") && element.getAttribute("contenteditable") !== "false")) &&
+                "value" in element)
+        )) ||
         element.type === "file" ||
         element.getAttribute("type") === "file"
     ) {
-        value = storage.get(element);
-        // storage.delete(element);
-        return value;
+        return element.value;
     }
 
     let prefix = getValueAttribute(element, "prefix", "get-value") || "";
@@ -130,7 +131,7 @@ const getValue = (element, valueType) => {
                     break;
 
                 case "IFRAME":
-                    value = element.srcdoc;
+                    value = readFrame(element);
                     break;
 
                 case "IMG":
@@ -186,13 +187,16 @@ const getValueAsync = async (element, valueType) => {
     let value = element.value || readValueAttribute() || "";
 
     if (
-        element.hasAttribute("component") ||
+        (!["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName) && (
+            element.hasAttribute("component") ||
+            ((element.__cocreateEditor || element.hasAttribute("editor") || element.hasAttribute("editor-language") ||
+                (element.hasAttribute("contenteditable") && element.getAttribute("contenteditable") !== "false")) &&
+                "value" in element)
+        )) ||
         element.type === "file" ||
         element.getAttribute("type") === "file"
     ) {
-        value = storage.get(element);
-        storage.delete(element);
-        return value;
+        return element.value;
     }
 
     let prefix = getValueAttribute(element, "prefix", "get-value") || "";
@@ -263,7 +267,7 @@ const getValueAsync = async (element, valueType) => {
                     break;
 
                 case "IFRAME":
-                    value = element.srcdoc;
+                    value = readFrame(element);
                     break;
 
                 default:
@@ -559,11 +563,30 @@ const handleSelectedValues = (element, values, prefix, suffix) => {
 /**
  * Retrieves a value from a standard element.
  */
+const readFrame = (element) => {
+    if ("value" in element) return element.value;
+    if (element.hasAttribute("srcdoc")) return element.srcdoc;
+    const doc = element.contentDocument;
+    const declaration = doc.doctype
+        ? new element.ownerDocument.defaultView.XMLSerializer().serializeToString(doc.doctype)
+        : "";
+    return declaration + doc.documentElement.outerHTML;
+};
+
 const handleElement = (element, valueType, evaluateValue) => {
-    if (element.hasAttribute("value")) {
-        return evaluateValue
-            ? element.getAttribute("value")
-            : element.attributes.getNamedItem("value")?.value;
+    const readDOM = [
+        "text", "innerText", "textContent", "innerHTML", "outerHTML", "element", "node"
+    ].includes(valueType);
+
+    // Explicit DOM reads bypass stored values. Conversion types retain the
+    // normal attribute -> property -> DOM precedence, including empty values.
+    if (!readDOM) {
+        if (element.hasAttribute("value")) {
+            return evaluateValue
+                ? element.getAttribute("value")
+                : element.attributes.getNamedItem("value")?.value;
+        }
+        if ("value" in element) return element.value;
     }
 
     let targetElement = element;
@@ -591,4 +614,4 @@ const handleElement = (element, valueType, evaluateValue) => {
     }
 };
 
-export { getValue, getValueAsync, storage };
+export { getValue, getValueAsync };
