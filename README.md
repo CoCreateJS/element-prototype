@@ -34,8 +34,8 @@ The prototype methods also accept an explicit type argument, such as
 Programmatically claimed Editor hosts use property storage even before their
 initial asynchronous read has finished.
 
-Non-native elements marked with `component`, `editor`, `editor-language`, or
-an enabled `contenteditable` attribute
+Non-native elements marked with `component`, `editor`, or an enabled
+`contenteditable` attribute
 store incoming values on their own `.value` property after setter transformations
 and conversion, then dispatch
 the configured events. This branch does not write a `value` attribute or replace
@@ -43,7 +43,7 @@ DOM content directly. An existing property setter, such as Editor's source sette
 still runs when `.value` is assigned. Generic elements can retain structured
 objects and arrays without JSON serialization. Inputs, textareas, and selects
 follow their native field paths even with these marker attributes. Iframes use
-their dedicated setter path when marked `editor` or `editor-language`, while an
+their dedicated setter path when marked `editor`, while an
 explicit `component` marker still opts an iframe into property storage;
 checkbox, radio, select, password, and date handling therefore still applies.
 `crdt="true"` no longer suppresses shared-setter native assignments; file inputs

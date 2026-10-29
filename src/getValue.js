@@ -54,7 +54,7 @@ const getValue = (element, valueType) => {
     if (
         (!["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName) && (
             element.hasAttribute("component") ||
-            ((element.__cocreateEditor || element.hasAttribute("editor") || element.hasAttribute("editor-language") ||
+            ((element.__cocreateEditor || element.hasAttribute("editor") ||
                 (element.hasAttribute("contenteditable") && element.getAttribute("contenteditable") !== "false")) &&
                 "value" in element)
         )) ||
@@ -189,7 +189,7 @@ const getValueAsync = async (element, valueType) => {
     if (
         (!["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName) && (
             element.hasAttribute("component") ||
-            ((element.__cocreateEditor || element.hasAttribute("editor") || element.hasAttribute("editor-language") ||
+            ((element.__cocreateEditor || element.hasAttribute("editor") ||
                 (element.hasAttribute("contenteditable") && element.getAttribute("contenteditable") !== "false")) &&
                 "value" in element)
         )) ||

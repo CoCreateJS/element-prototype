@@ -18,18 +18,20 @@ const setValue = (el, value, dispatch) => {
     if (value === null || value === undefined) return;
     value = transformValue(el, value, "set-value");
     value = convertValue(value, getValueAttribute(el, "type", "set-value") || "");
+
+    if (typeof value === "object" && !el.hasAttribute("component")) {
+        value = JSON.stringify(value, null, 2);
+    }
+
     const nativeValueElement = ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName);
     if (!nativeValueElement && (
         el.hasAttribute("component") ||
-        ((el.__cocreateEditor || el.hasAttribute("editor") || el.hasAttribute("editor-language") ||
+        ((el.__cocreateEditor || el.hasAttribute("editor") ||
             (el.hasAttribute("contenteditable") && el.getAttribute("contenteditable") !== "false")) &&
             el.tagName !== "IFRAME")
     )) {
         el.value = value;
         return dispatchEvents(el, bubbles, dispatch, value);
-    }
-    if (typeof value === "object") {
-        value = JSON.stringify(value, null, 2);
     }
 
     if (["date", "time", "datetime", "datetime-local"].includes(el.getAttribute("type") || el.type)) {

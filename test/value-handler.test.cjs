@@ -306,7 +306,7 @@ test('component values stay on the element across repeated asynchronous reads', 
 
 test('component and editor markers do not bypass native checkbox handling', async () => {
     const Element = await setup();
-    for (const marker of ['component', 'editor', 'editor-language']) {
+    for (const marker of ['component', 'editor', 'language']) {
         const el = new Element({ [marker]: '', value: 'yes' }, 'INPUT');
         el.type = 'checkbox';
         el.value = 'yes';
