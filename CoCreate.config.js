@@ -12,8 +12,8 @@ module.exports = {
                 "pathname": "/docs/element-prototype/index.html",
                 "src": "{{./docs/index.html}}",
                 "host": [
-                    "cocreate.app",
-                    "general.cocreate.app"
+                    "CoCreateJS.com",
+                    "general.CoCreateJS.com"
                 ],
                 "directory": "element-prototype",
                 "content-type": "{{content-type}}",
