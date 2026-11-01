@@ -26,8 +26,195 @@ import { getValue } from "./getValue.js";
 import { queryElements } from "./queryElements.js";
 
 export default {
+	/**
+	 *
+ * @public
+ * @environment client
+ */
 	getAttribute,
+	/**
+	 *
+ * @public
+ * @environment client
+ */
 	getValue,
+	/**
+	 *
+ * @public
+ * @environment client
+ */
 	setValue,
+	/**
+	 *
+ * @public
+ * @environment client
+ */
 	queryElements
 };
+
+/**
+ *
+ * @name array
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name component
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name contenteditable
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name editor
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name key
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name locale
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name multiple
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name now
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name object
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name set-value-prefix
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name set-value-suffix
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name src
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name srcdoc
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name state_id
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name time-ago-limit
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name time-to-units
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name type
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name use-utc
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name value
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name week-start-day
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ * A simple element-prototype component in vanilla javascript. Easily configured using HTML5 data-attributes and/or JavaScript API.
+ *
+ * @module element-prototype
+ * @environment client
+ */
