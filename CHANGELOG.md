@@ -1,3 +1,34 @@
+# [2.0.0](https://github.com/CoCreateJS/element-prototype/compare/v1.33.2...v2.0.0) (2026-11-02)
+
+
+### Bug Fixes
+
+* add Deno specific entries to .gitignore ([b4d4e55](https://github.com/CoCreateJS/element-prototype/commit/b4d4e55734e16da027462e1f222165c03e269b61))
+* bump [@cocreate](https://github.com/cocreate) dependencies ([ae40b01](https://github.com/CoCreateJS/element-prototype/commit/ae40b014875ae77478e640fec69aae011f2a11bb))
+* bump [@cocreate](https://github.com/cocreate) package versions ([09183cc](https://github.com/CoCreateJS/element-prototype/commit/09183cce5e2be7300f333e34e5c00e91b896db71))
+* bump versions ([75e37cc](https://github.com/CoCreateJS/element-prototype/commit/75e37cc8522667963e200d7fbc0f72109aa2c7f3))
+* bump versions ([16e7844](https://github.com/CoCreateJS/element-prototype/commit/16e78441f1a4c1e4e052b5abfbf130b60068d351))
+* rely on observers for inserted state ([b039fee](https://github.com/CoCreateJS/element-prototype/commit/b039fee6c1c78ba9c9ca01fc4857275005442954))
+* remove trailing slash from node_modules entry in .gitignore ([e770bae](https://github.com/CoCreateJS/element-prototype/commit/e770bae548d069979059d5fdd5f37f5b09b0c7b2))
+* return image source values ([d902574](https://github.com/CoCreateJS/element-prototype/commit/d902574f17d42e83edb2a76d61c63f3d5d80eb2c))
+* stringify structured values for editor elements ([776af94](https://github.com/CoCreateJS/element-prototype/commit/776af947450b469e83850d73f65ec05aab138dc7))
+* update git url ([ec7569b](https://github.com/CoCreateJS/element-prototype/commit/ec7569b076e4ff044f96f16e9c24557583764543))
+* update GitHub Actions to use latest versions and sync package.json description ([44dfdd3](https://github.com/CoCreateJS/element-prototype/commit/44dfdd314b1829888d29809da72716814ab05fe6))
+* use iframe src when configured ([87abb8a](https://github.com/CoCreateJS/element-prototype/commit/87abb8a777ceeb5c00aed8ed2c92613df8df9f20))
+
+
+### Features
+
+* align CoCreate repository and package naming ([34331f5](https://github.com/CoCreateJS/element-prototype/commit/34331f55d47de6b60715314ba6749e18ee89c11e))
+* component flag now fires input event ([ff7cfc5](https://github.com/CoCreateJS/element-prototype/commit/ff7cfc5921d4a14a8a905cf0d0811852eca15f5f))
+* enhance getAttribute and getValue functions with AST processing and async support ([6d4ffce](https://github.com/CoCreateJS/element-prototype/commit/6d4ffce40a0457fef86b7c2d4466d85052994c59))
+* store editor values through element prototype ([0ff75ce](https://github.com/CoCreateJS/element-prototype/commit/0ff75cef2f6cfe08ab45a55069f84b457ef85f59))
+
+
+### BREAKING CHANGES
+
+* consumers must use the renamed CoCreate package and repository identities; the previous prefixed names are no longer supported.
+
 ## [1.33.2](https://github.com/CoCreateJS/CoCreate-element-prototype/compare/v1.33.1...v1.33.2) (2026-07-19)
 
 
