@@ -1,19 +1,19 @@
 # Contributing to CoCreate-element-prototype
 
-This project is work of [many contributors](https://github.com/CoCreateJS/CoCreate-element-prototype/graphs/contributors).
-You're encouraged to submit [pull requests](https://github.com/CoCreateJS/CoCreate-element-prototype/pulls),
-[propose features and discuss issues](https://github.com/CoCreateJS/CoCreate-element-prototype/issues).
+This project is work of [many contributors](https://github.com/CoCreateJS/element-prototype/graphs/contributors).
+You're encouraged to submit [pull requests](https://github.com/CoCreateJS/element-prototype/pulls),
+[propose features and discuss issues](https://github.com/CoCreateJS/element-prototype/issues).
 
 In the examples below, substitute your Github username for `contributor` in URLs.
 
 ## Fork the Project
 
-Fork the [project on Github](https://github.com/CoCreateJS/CoCreate-element-prototype) and check out your copy.
+Fork the [project on Github](https://github.com/CoCreateJS/element-prototype) and check out your copy.
 
 ```
 git clone https://github.com/contributor/CoCreate-element-prototype.git
 cd CoCreate-element-prototype
-git remote add upstream https://github.com/cocreatejs/CoCreate-element-prototype.git
+git remote add upstream https://github.com/CoCreateJS/element-prototype.git
 ```
 
 ## Create a Topic Branch
@@ -75,7 +75,7 @@ git push origin my-feature-branch
 
 ## Make a Pull Request
 
-Go to [https://github.com/CoCreateJS/CoCreate-element-prototype](https://github.com/CoCreateJS/CoCreate-element-prototype) and select your feature branch.
+Go to [https://github.com/CoCreateJS/element-prototype](https://github.com/CoCreateJS/element-prototype) and select your feature branch.
 Click the 'Pull Request' button and fill out the form. Pull requests are usually reviewed within a few days.
 
 ## Rebase

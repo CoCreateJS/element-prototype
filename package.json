@@ -22,17 +22,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cocreatejs/CoCreate-element-prototype.git"
+    "url": "git+https://github.com/CoCreateJS/element-prototype.git"
   },
   "author": "CoCreate LLC",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/CoCreateJS/CoCreate-element-prototype/issues"
+    "url": "https://github.com/CoCreateJS/element-prototype/issues"
   },
   "homepage": "https://CoCreateJS.com/docs/element-prototype",
   "funding": {
     "type": "GitHub Sponsors ❤",
-    "url": "https://github.com/sponsors/CoCreate-app"
+    "url": "https://github.com/sponsors/CoCreateJS"
   },
   "main": "./src/index.js",
   "dependencies": {
